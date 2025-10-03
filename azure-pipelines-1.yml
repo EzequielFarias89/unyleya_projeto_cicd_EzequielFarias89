@@ -1,0 +1,19 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  imageName: "unyleyaapp"
+
+steps:
+- task: Docker@2
+  displayName: 'Build and push image to ACR'
+  inputs:
+    containerRegistry: '$(ACR_SERVICE_CONNECTION)'   # Conexão com ACR
+    repository: '$(imageName)'
+    command: 'buildAndPush'
+    Dockerfile: '**/Dockerfile'
+    tags: |
+      $(Build.BuildId)
