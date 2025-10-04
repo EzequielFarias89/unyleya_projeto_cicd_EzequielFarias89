@@ -1,0 +1,29 @@
+# .azure-pipelines/ci.yml
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  # Nome da imagem (sem registry)
+  imageName: 'azure-vote-app'
+  # Nome do seu ACR (ex: meuacr). NÃO coloque ".azurecr.io" aqui.
+  acrName: 'SEU_ACR_NAME'
+  # Nome da service connection que você criou no Azure DevOps
+  acrServiceConnection: 'ACR-Service-Connection'
+
+steps:
+- task: Docker@2
+  displayName: Build and push image to ACR
+  inputs:
+    command: buildAndPush
+    # repository final: <acrLoginServer>/<imageName>
+    repository: '$(acrName).azurecr.io/$(imageName)'
+    dockerfile: '**/Dockerfile'    # Ajuste se seu Dockerfile estiver em subpasta (ex: src/Dockerfile)
+    containerRegistry: '$(acrServiceConnection)'
+    tags: |
+      $(Build.BuildId)
+      latest
