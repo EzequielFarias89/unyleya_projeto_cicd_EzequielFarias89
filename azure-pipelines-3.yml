@@ -1,0 +1,50 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  acrName: 'acrUnyleyaDevOps'
+  imageName: 'unyleyaapp'
+  tag: '$(Build.BuildId)'
+
+steps:
+# 1. Login no Azure
+- task: AzureCLI@2
+  displayName: 'Login no Azure'
+  inputs:
+    azureSubscription: 'AzureServiceConnection'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      echo "Logado no Azure com sucesso."
+
+# 2. Login no ACR
+- task: AzureCLI@2
+  displayName: 'Login no Azure Container Registry'
+  inputs:
+    azureSubscription: 'AzureServiceConnection'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      az acr login --name $(acrName)
+
+# 3. Build da imagem Docker
+- task: Docker@2
+  displayName: 'Build da imagem Docker'
+  inputs:
+    command: 'build'
+    dockerfile: '**/Dockerfile'
+    tags: |
+      $(acrName).azurecr.io/$(imageName):$(tag)
+
+# 4. Push da imagem para o ACR
+- task: Docker@2
+  displayName: 'Enviar imagem para o ACR'
+  inputs:
+    command: 'push'
+    tags: |
+      $(acrName).azurecr.io/$(imageName):$(tag)
